@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'OS', defaultValue: 'Windows', description: 'Target Operating System')
+        string(name: 'OS_VERSION', defaultValue: '11', description: 'Target OS Version')
+        string(name: 'BROWSER', defaultValue: 'Chrome', description: 'Target Browser')
+        string(name: 'BROWSER_VERSION', defaultValue: 'latest', description: 'Target Browser Version')
+    }
+
+    environment {
+        // Retrieves credentials securely from Jenkins Credentials Provider
+        // Ensure you create a 'text' credential for both of these IDs in Jenkins
+        BROWSERSTACK_USERNAME   = credentials('browserstack-username-id')
+        BROWSERSTACK_ACCESS_KEY = credentials('browserstack-access-key-id')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Pulls the source code from your repository
+                checkout scm
+            }
+        }
+
+        stage('Validate Credentials') {
+            steps {
+                script {
+                    if (!env.BROWSERSTACK_USERNAME || !env.BROWSERSTACK_ACCESS_KEY) {
+                        error "Missing Credentials: Ensure BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY are configured in Jenkins credentials."
+                    }
+                }
+            }
+        }
+
+        stage('Execute Test Suite') {
+            steps {
+                // Executes TestNG passing the selected parameters into your @Parameters suite configuration
+                bat "mvn clean test -Dos=${params.OS} -DosVersion=${params.OS_VERSION} -DbrowserName=${params.BROWSER} -DbrowserVersion=${params.BROWSER_VERSION}"
+            }
+        }
+    }
+
+    post {
+        always {
+            // Archives TestNG execution and Surefire reports for analysis
+            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: '**/target/surefire-reports/**/*', fingerprint: true, allowEmptyResults: true
+        }
+    }
+}
