@@ -9,16 +9,16 @@ pipeline {
     }
 
     environment {
-        // Retrieves credentials securely from Jenkins Credentials Provider
-        BROWSERSTACK_USERNAME   = credentials('browserstack-username-id')
-        BROWSERSTACK_ACCESS_KEY = credentials('browserstack-access-key-id')
+        // FIXED: Updated mapping strings to match your exact uppercase Jenkins credential IDs
+        BROWSERSTACK_USERNAME   = credentials('BROWSERSTACK_USERNAME')
+        BROWSERSTACK_ACCESS_KEY = credentials('BROWSERSTACK_ACCESS_KEY')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Clones your specific master branch directly
-                git branch: 'master', url: 'https://github.com/samruddhiingale1-cloud/AiEngineeringassignment.git'
+                // Clones your master branch directly
+                git branch: 'master', url: 'https://github.com'
             }
         }
 
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     if (!env.BROWSERSTACK_USERNAME || !env.BROWSERSTACK_ACCESS_KEY) {
-                        error "Missing Credentials: Ensure browserstack-username-id and browserstack-access-key-id are configured in Jenkins credentials."
+                        error "Missing Credentials: Ensure BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY are configured in Jenkins credentials."
                     }
                 }
             }
@@ -38,7 +38,6 @@ pipeline {
                 bat "mvn clean test -Dos=${params.OS} -DosVersion=${params.OS_VERSION} -DbrowserName=${params.BROWSER} -DbrowserVersion=${params.BROWSER_VERSION}"
             }
             
-            // FIXED: Moved the post-reporting blocks inside the stage so they execute within the running node context
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
