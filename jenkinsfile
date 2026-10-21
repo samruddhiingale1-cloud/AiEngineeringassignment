@@ -18,7 +18,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Clones your specific master branch directly
-                git branch: 'master', url: 'https://github.com'
+                git branch: 'master', url: 'https://github.com/samruddhiingale1-cloud/AiEngineeringassignment.git'
             }
         }
 
@@ -37,14 +37,14 @@ pipeline {
                 // Executes TestNG passing parameters via Windows batch command
                 bat "mvn clean test -Dos=${params.OS} -DosVersion=${params.OS_VERSION} -DbrowserName=${params.BROWSER} -DbrowserVersion=${params.BROWSER_VERSION}"
             }
-        }
-    }
-
-    post {
-        always {
-            // Streamlined to standard syntax options compatible with older Jenkins plugin sets
-            junit '**/target/surefire-reports/*.xml'
-            archiveArtifacts artifacts: '**/target/surefire-reports/**/*', fingerprint: true
+            
+            // FIXED: Moved the post-reporting blocks inside the stage so they execute within the running node context
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                    archiveArtifacts artifacts: '**/target/surefire-reports/**/*', fingerprint: true
+                }
+            }
         }
     }
 }
