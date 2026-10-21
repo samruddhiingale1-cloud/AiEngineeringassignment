@@ -33,10 +33,9 @@ pipeline {
             }
         }
 
-
         stage('Execute Test Suite') {
             steps {
-                // Executes TestNG passing the selected parameters into your @Parameters suite configuration
+                // Executes TestNG passing the selected parameters into your @Parameters suite configuration via Windows batch
                 bat "mvn clean test -Dos=${params.OS} -DosVersion=${params.OS_VERSION} -DbrowserName=${params.BROWSER} -DbrowserVersion=${params.BROWSER_VERSION}"
             }
         }
