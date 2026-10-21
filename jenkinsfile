@@ -10,7 +10,6 @@ pipeline {
 
     environment {
         // Retrieves credentials securely from Jenkins Credentials Provider
-        // Ensure you create a 'text' credential for both of these IDs in Jenkins
         BROWSERSTACK_USERNAME   = credentials('browserstack-username-id')
         BROWSERSTACK_ACCESS_KEY = credentials('browserstack-access-key-id')
     }
@@ -18,8 +17,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Pulls the source code from your repository
-                checkout scm
+                // Clones your specific master branch directly
+                git branch: 'master', url: 'https://github.com'
             }
         }
 
@@ -27,7 +26,7 @@ pipeline {
             steps {
                 script {
                     if (!env.BROWSERSTACK_USERNAME || !env.BROWSERSTACK_ACCESS_KEY) {
-                        error "Missing Credentials: Ensure BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY are configured in Jenkins credentials."
+                        error "Missing Credentials: Ensure browserstack-username-id and browserstack-access-key-id are configured in Jenkins credentials."
                     }
                 }
             }
@@ -35,7 +34,7 @@ pipeline {
 
         stage('Execute Test Suite') {
             steps {
-                // Executes TestNG passing the selected parameters into your @Parameters suite configuration via Windows batch
+                // Executes TestNG passing parameters via Windows batch command
                 bat "mvn clean test -Dos=${params.OS} -DosVersion=${params.OS_VERSION} -DbrowserName=${params.BROWSER} -DbrowserVersion=${params.BROWSER_VERSION}"
             }
         }
@@ -43,9 +42,9 @@ pipeline {
 
     post {
         always {
-            // Archives TestNG execution and Surefire reports for analysis
-            junit testResults: '**/target/surefire-reports/*.xml', allowEmptyResults: true
-            archiveArtifacts artifacts: '**/target/surefire-reports/**/*', fingerprint: true, allowEmptyResults: true
+            // Streamlined to standard syntax options compatible with older Jenkins plugin sets
+            junit '**/target/surefire-reports/*.xml'
+            archiveArtifacts artifacts: '**/target/surefire-reports/**/*', fingerprint: true
         }
     }
 }
